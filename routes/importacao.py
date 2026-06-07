@@ -5,6 +5,7 @@
 from flask import Blueprint, request, redirect, flash, render_template, session
 from werkzeug.utils import secure_filename
 import os
+import io
 import traceback
 from datetime import datetime
 from config import Config
@@ -78,8 +79,10 @@ def upload():
     id_usuario = session.get('id_usuario', 1)
 
     try:
-        # Lê o OFX diretamente do stream — sem salvar em disco (evita problemas de permissão no servidor)
-        ofx = ler_arquivo_ofx_stream(file.stream)
+        # Lê o conteúdo do arquivo em memória e cria um BytesIO para o parser
+        # Mais compatível que passar o stream direto (garante seek + leitura correta)
+        conteudo = io.BytesIO(file.read())
+        ofx = ler_arquivo_ofx_stream(conteudo)
         info_conta = obter_info_conta(ofx)
 
         # Extrai as transações do extrato como lista de dicionários
