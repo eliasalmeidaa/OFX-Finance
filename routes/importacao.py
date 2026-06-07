@@ -70,13 +70,12 @@ def upload():
         flash(f'O arquivo "{filename}" não é um OFX válido.', 'erro')
         return redirect('/importar')
 
-    # Salva o arquivo na pasta de uploads antes de processar
-    filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
-    file.save(filepath)
-
     id_usuario = session.get('id_usuario', 1)
 
     try:
+        # Salva o arquivo na pasta de uploads antes de processar
+        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        file.save(filepath)
         # Lê e interpreta o arquivo OFX
         ofx = ler_arquivo_ofx(filepath)
         info_conta = obter_info_conta(ofx)

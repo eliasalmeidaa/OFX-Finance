@@ -13,8 +13,8 @@ class Config:
     # Se não encontrar no .env, usa um valor padrão (apenas para desenvolvimento local)
     SECRET_KEY = os.environ.get('SECRET_KEY', 'chave_secreta_123')
 
-    # Pasta onde os arquivos OFX enviados ficam salvos temporariamente
-    UPLOAD_FOLDER = 'uploads'
+    # Usa /tmp no Linux (Render) e 'uploads' localmente no Windows
+    UPLOAD_FOLDER = '/tmp/uploads' if os.name == 'posix' else 'uploads'
 
     # Apenas arquivos com extensão .ofx são aceitos no upload
     ALLOWED_EXTENSIONS = {'ofx'}
