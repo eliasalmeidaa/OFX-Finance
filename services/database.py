@@ -1,8 +1,13 @@
+# Conexão com o banco de dados MySQL e criação das tabelas.
+# Todas as tabelas são criadas automaticamente na primeira execução —
+# não é necessário rodar nenhum SQL manualmente.
+
 import mysql.connector
 from config import Config
 
 
 def conectar_banco():
+    # Monta os parâmetros de conexão a partir das configurações do .env
     params = dict(
         host=Config.DB_HOST,
         port=Config.DB_PORT,
@@ -10,10 +15,14 @@ def conectar_banco():
         password=Config.DB_PASSWORD,
         database=Config.DB_NAME,
     )
+
+    # SSL é obrigatório para bancos hospedados online (ex: Aiven)
+    # ssl_verify_cert=False aceita o certificado sem validar a cadeia de CA
     if Config.DB_SSL:
         params['ssl_disabled'] = False
         params['ssl_verify_cert'] = False
         params['ssl_verify_identity'] = False
+
     return mysql.connector.connect(**params)
 
 
@@ -21,17 +30,18 @@ def criar_tabelas():
     conexao = conectar_banco()
     cursor = conexao.cursor()
 
-    # Tabela de usuários (Elias)
+    # Tabela de usuários — armazena as contas cadastradas no sistema
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
             id_usuario INT AUTO_INCREMENT PRIMARY KEY,
             nome VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL UNIQUE,
-            senha_hash VARCHAR(255) NOT NULL
+            senha_hash VARCHAR(255) NOT NULL,
+            data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
-    # Tabela de categorias (Gabriel)
+    # Tabela de categorias — ex: Salário, Moradia, Transporte
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS categorias (
             id_categoria INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,7 +49,7 @@ def criar_tabelas():
         )
     ''')
 
-    # Tabela de importações OFX (Gabriel)
+    # Tabela de importações — registra cada arquivo OFX enviado por um usuário
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS importacoes (
             id_importacao INT AUTO_INCREMENT PRIMARY KEY,
@@ -51,7 +61,8 @@ def criar_tabelas():
         )
     ''')
 
-    # Tabela de transações (Gabriel)
+    # Tabela de transações — cada linha do extrato OFX vira uma transação aqui
+    # fitid é o ID único da transação no arquivo OFX, usado para evitar duplicatas
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS transacoes (
             id_transacao INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,14 +71,15 @@ def criar_tabelas():
             descricao TEXT,
             valor DECIMAL(10,2) NOT NULL,
             data_transacao DATE,
-            tipo VARCHAR(10) NOT NULL,
+            tipo VARCHAR(10),
             fitid VARCHAR(255),
             FOREIGN KEY (id_importacao) REFERENCES importacoes(id_importacao),
             FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
         )
     ''')
 
-    # Tabela de configurações chave/valor por usuário
+    # Tabela de configurações por usuário — armazena o orçamento mensal do dashboard
+    # Chave primária composta (chave + id_usuario) para que cada usuário tenha seu próprio valor
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS configuracoes (
             chave VARCHAR(255) NOT NULL,
@@ -77,7 +89,7 @@ def criar_tabelas():
         )
     ''')
 
-    # Tabela de orçamentos mensais (Guilherme - antes era em memória)
+    # Tabela de orçamentos mensais — limites de gasto definidos por mês/ano
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS orcamentos (
             id_orcamento INT AUTO_INCREMENT PRIMARY KEY,
@@ -85,17 +97,17 @@ def criar_tabelas():
             mes INT NOT NULL,
             ano INT NOT NULL,
             valor_previsto DECIMAL(10,2) NOT NULL,
-            data_criacao DATE NOT NULL,
+            data_criacao DATE,
             FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
         )
     ''')
 
-    # Tabela de metas financeiras (Guilherme - antes era em memória)
+    # Tabela de metas financeiras — objetivos de economia ou investimento
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS metas (
             id_meta INT AUTO_INCREMENT PRIMARY KEY,
             id_usuario INT NOT NULL,
-            descricao TEXT NOT NULL,
+            descricao VARCHAR(255) NOT NULL,
             valor DECIMAL(10,2) NOT NULL,
             status VARCHAR(20) DEFAULT 'Em andamento',
             FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
@@ -108,17 +120,17 @@ def criar_tabelas():
 
 
 def inicializar_categorias(categorias_dict):
+    # Insere as categorias padrão definidas em categorizador.py
+    # INSERT IGNORE ignora silenciosamente se a categoria já existir (evita erros na segunda execução)
     conexao = conectar_banco()
     cursor = conexao.cursor()
-
-    categorias_padrao = list(categorias_dict.keys()) + ['Outros']
-
-    for nome in categorias_padrao:
+    for nome in categorias_dict:
         cursor.execute(
-            'INSERT IGNORE INTO categorias (nome_categoria) VALUES (%s)',
+            "INSERT IGNORE INTO categorias (nome_categoria) VALUES (%s)",
             (nome,)
         )
-
+    # Categorias extras que não estão no dicionário principal de palavras-chave
+    cursor.execute("INSERT IGNORE INTO categorias (nome_categoria) VALUES ('Outros')")
     conexao.commit()
     cursor.close()
     conexao.close()

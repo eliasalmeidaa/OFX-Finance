@@ -1,10 +1,19 @@
+# Queries SQL que alimentam o dashboard financeiro.
+# Todas as funções recebem id_usuario e filtram os dados exclusivamente
+# daquele usuário — garantindo isolamento entre contas.
+#
+# Como transacoes não tem id_usuario diretamente, o filtro é feito via JOIN:
+# transacoes → importacoes → usuarios
+
 from services.database import conectar_banco
 
 
 def obter_resumo(id_usuario):
+    # Retorna receita total, despesa total e saldo (receita - despesa)
     conexao = conectar_banco()
     cursor = conexao.cursor(dictionary=True)
     try:
+        # Soma todos os valores positivos (Entradas) do usuário
         cursor.execute("""
             SELECT COALESCE(SUM(t.valor), 0) AS total
             FROM transacoes t
@@ -13,6 +22,7 @@ def obter_resumo(id_usuario):
         """, (id_usuario,))
         receita = float(cursor.fetchone()['total'])
 
+        # Soma o valor absoluto dos negativos (Saídas) do usuário
         cursor.execute("""
             SELECT COALESCE(SUM(ABS(t.valor)), 0) AS total
             FROM transacoes t
@@ -28,6 +38,8 @@ def obter_resumo(id_usuario):
 
 
 def gastos_por_categoria(id_usuario):
+    # Retorna lista de categorias com o total gasto em cada uma
+    # Usada pelo gráfico de pizza (rosca) do dashboard
     conexao = conectar_banco()
     cursor = conexao.cursor(dictionary=True)
     try:
@@ -48,6 +60,8 @@ def gastos_por_categoria(id_usuario):
 
 
 def evolucao_saldo(id_usuario):
+    # Retorna o saldo acumulado dia a dia para o gráfico de linha
+    # Agrupa transações por data e calcula o saldo acumulado progressivamente
     conexao = conectar_banco()
     cursor = conexao.cursor(dictionary=True)
     try:
@@ -71,6 +85,8 @@ def evolucao_saldo(id_usuario):
 
 
 def receitas_vs_despesas_mensal(id_usuario):
+    # Retorna receitas e despesas agrupadas por mês para o gráfico de barras
+    # DATE_FORMAT substitui o strftime do SQLite (incompatível com MySQL)
     conexao = conectar_banco()
     cursor = conexao.cursor(dictionary=True)
     try:
@@ -87,12 +103,10 @@ def receitas_vs_despesas_mensal(id_usuario):
         receitas, despesas = [], []
         for mes in meses:
             receitas.append(next(
-                (float(r['total']) for r in rows if r['mes'] == mes and r['tipo'] == 'Entrada'),
-                0.0
+                (float(r['total']) for r in rows if r['mes'] == mes and r['tipo'] == 'Entrada'), 0.0
             ))
             despesas.append(next(
-                (float(r['total']) for r in rows if r['mes'] == mes and r['tipo'] == 'Saída'),
-                0.0
+                (float(r['total']) for r in rows if r['mes'] == mes and r['tipo'] == 'Saída'), 0.0
             ))
         return {'meses': meses, 'receitas': receitas, 'despesas': despesas}
     finally:
@@ -101,6 +115,8 @@ def receitas_vs_despesas_mensal(id_usuario):
 
 
 def obter_orcamento(id_usuario):
+    # Busca o orçamento mensal definido pelo usuário no dashboard
+    # Retorna 0.0 se o usuário ainda não configurou nenhum valor
     conexao = conectar_banco()
     cursor = conexao.cursor(dictionary=True)
     try:
@@ -116,6 +132,8 @@ def obter_orcamento(id_usuario):
 
 
 def definir_orcamento(valor, id_usuario):
+    # Salva ou atualiza o orçamento mensal do usuário
+    # REPLACE INTO atualiza se já existir a combinação (chave, id_usuario)
     conexao = conectar_banco()
     cursor = conexao.cursor()
     try:

@@ -1,3 +1,7 @@
+# Arquivo principal da aplicação OFX Finance.
+# Responsável por criar e configurar o app Flask,
+# registrar todos os blueprints e inicializar o banco de dados.
+
 from flask import Flask, send_from_directory
 from config import Config
 from services.database import criar_tabelas, inicializar_categorias
@@ -10,23 +14,32 @@ from routes.metas import metas_bp
 
 
 def create_app():
+    # Cria a instância do Flask apontando a pasta 'static' para arquivos públicos (CSS, JS, imagens)
     app = Flask(__name__, static_url_path='/static', static_folder='static')
+
+    # Chave secreta usada para assinar os cookies de sessão (login do usuário)
     app.secret_key = Config.SECRET_KEY
+
+    # Pasta onde os arquivos OFX enviados pelo usuário serão salvos temporariamente
     app.config['UPLOAD_FOLDER'] = Config.UPLOAD_FOLDER
+
+    # Cria a pasta de uploads se não existir
     Config.init_app(app)
 
-    # Cria todas as tabelas no banco MySQL do Elias
+    # Cria todas as tabelas no banco MySQL (não recria se já existirem)
     criar_tabelas()
+
+    # Insere as categorias padrão no banco (ex: Salário, Moradia, Transporte...)
     inicializar_categorias(CATEGORIAS)
 
-    # Blueprints de cada integrante
-    app.register_blueprint(auth_bp)        # Elias (auth + banco mySQL)
-    app.register_blueprint(importacao_bp)  # Gabriel (upload OFX)
-    app.register_blueprint(dashboard_bp)   # Gabriel (dashboard)
-    app.register_blueprint(orcamento_bp)   # Guilherme (orçamentos)
-    app.register_blueprint(metas_bp)       # Guilherme (metas)
+    # Registra os blueprints — cada blueprint é um módulo com suas rotas
+    app.register_blueprint(auth_bp)        # Elias: /cadastro /login /logout
+    app.register_blueprint(importacao_bp)  # Gabriel: /importar /upload
+    app.register_blueprint(dashboard_bp)   # Evelyn: /dashboard
+    app.register_blueprint(orcamento_bp)   # Guilherme: /orcamentos
+    app.register_blueprint(metas_bp)       # Guilherme: /metas
 
-    # Página de login do Elias servida como arquivo estático
+    # Rota raiz ('/') serve a página de login (arquivo HTML estático do Elias)
     @app.route('/')
     def index():
         return send_from_directory('static', 'index.html')
@@ -34,7 +47,10 @@ def create_app():
     return app
 
 
+# Cria o app para ser usado pelo servidor Flask
 app = create_app()
 
 if __name__ == '__main__':
+    # Inicia o servidor em modo debug na porta 5000
+    # debug=True recarrega automaticamente ao salvar arquivos
     app.run(debug=True, port=5000)
