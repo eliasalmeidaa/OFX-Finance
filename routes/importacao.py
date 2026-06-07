@@ -5,6 +5,7 @@
 from flask import Blueprint, request, redirect, flash, render_template, session
 from werkzeug.utils import secure_filename
 import os
+import traceback
 from datetime import datetime
 from config import Config
 from services.leitor_ofx import ler_arquivo_ofx, extrair_transacoes, obter_info_conta
@@ -30,21 +31,25 @@ def index():
 
     # Busca os últimos 10 extratos importados pelo usuário para exibir na tabela
     # LEFT JOIN com transacoes para contar quantas transações cada importação gerou
-    conexao = conectar_banco()
-    cursor = conexao.cursor(dictionary=True)
-    cursor.execute('''
-        SELECT i.id_importacao, i.nome_arquivo, i.data_importacao, i.mes_referencia,
-               COUNT(t.id_transacao) AS total_transacoes
-        FROM importacoes i
-        LEFT JOIN transacoes t ON t.id_importacao = i.id_importacao
-        WHERE i.id_usuario = %s
-        GROUP BY i.id_importacao
-        ORDER BY i.data_importacao DESC
-        LIMIT 10
-    ''', (id_usuario,))
-    importacoes = cursor.fetchall()
-    cursor.close()
-    conexao.close()
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT i.id_importacao, i.nome_arquivo, i.data_importacao, i.mes_referencia,
+                   COUNT(t.id_transacao) AS total_transacoes
+            FROM importacoes i
+            LEFT JOIN transacoes t ON t.id_importacao = i.id_importacao
+            WHERE i.id_usuario = %s
+            GROUP BY i.id_importacao
+            ORDER BY i.data_importacao DESC
+            LIMIT 10
+        ''', (id_usuario,))
+        importacoes = cursor.fetchall()
+        cursor.close()
+        conexao.close()
+    except Exception as e:
+        print(f'[ERRO /importar] {traceback.format_exc()}')
+        importacoes = []
 
     return render_template('index.html', importacoes=importacoes)
 
@@ -122,7 +127,7 @@ def upload():
         flash(f'Arquivo "{filename}" processado com sucesso!', 'sucesso')
 
     except Exception as e:
-        print(f'[ERRO upload] {e}')
-        flash('Erro ao processar o arquivo.', 'erro')
+        print(f'[ERRO upload] {traceback.format_exc()}')
+        flash(f'Erro ao processar o arquivo: {e}', 'erro')
 
     return redirect('/importar')
