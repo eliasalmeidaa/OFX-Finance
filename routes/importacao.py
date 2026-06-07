@@ -8,7 +8,7 @@ import os
 import traceback
 from datetime import datetime
 from config import Config
-from services.leitor_ofx import ler_arquivo_ofx, extrair_transacoes, obter_info_conta
+from services.leitor_ofx import ler_arquivo_ofx, ler_arquivo_ofx_stream, extrair_transacoes, obter_info_conta
 from services.categorizador import categorizar_transacao, determinar_tipo_transacao, CATEGORIAS
 from services.salvar_transacoes import salvar_importacao_db, salvar_categoria_db, salvar_transacao_db
 from services.database import conectar_banco
@@ -78,11 +78,8 @@ def upload():
     id_usuario = session.get('id_usuario', 1)
 
     try:
-        # Salva o arquivo na pasta de uploads antes de processar
-        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
-        file.save(filepath)
-        # Lê e interpreta o arquivo OFX
-        ofx = ler_arquivo_ofx(filepath)
+        # Lê o OFX diretamente do stream — sem salvar em disco (evita problemas de permissão no servidor)
+        ofx = ler_arquivo_ofx_stream(file.stream)
         info_conta = obter_info_conta(ofx)
 
         # Extrai as transações do extrato como lista de dicionários

@@ -12,6 +12,11 @@ def ler_arquivo_ofx(caminho_arquivo):
     return ofx
 
 
+def ler_arquivo_ofx_stream(stream):
+    # Lê o OFX diretamente do stream de upload — sem salvar em disco
+    return OfxParser.parse(stream)
+
+
 def extrair_transacoes(ofx):
     # Percorre todas as transações do extrato e converte para dicionários
     conta = ofx.account
