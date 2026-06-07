@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFX Finance — Acesso</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <div class="card">
+
+        <div class="brand">
+            <h1>OFX<span> Finance</span></h1>
+            <p>Controle financeiro simplificado</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab ativa" onclick="alternarAba('login', this)">Entrar</div>
+            <div class="tab" onclick="alternarAba('cadastro', this)">Cadastrar</div>
+        </div>
+
+        <!-- Login -->
+        <div id="form-login" class="form ativo">
+            <div id="msg-login" class="msg"></div>
+
+            <div class="campo">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="seu@email.com">
+            </div>
+
+            <div class="campo">
+                <label for="login-senha">Senha</label>
+                <input type="password" id="login-senha" placeholder="••••••••"
+                       onkeydown="if(event.key==='Enter') fazerLogin()">
+            </div>
+
+            <button class="btn" onclick="fazerLogin()">Entrar</button>
+            <p class="link-aba">Não tem conta? <a href="#" onclick="irParaAba('cadastro')">Cadastre-se</a></p>
+        </div>
+
+        <!-- Cadastro -->
+        <div id="form-cadastro" class="form">
+            <div id="msg-cadastro" class="msg"></div>
+
+            <div class="campo">
+                <label for="cad-nome">Nome</label>
+                <input type="text" id="cad-nome" placeholder="Seu nome completo">
+            </div>
+
+            <div class="campo">
+                <label for="cad-email">Email</label>
+                <input type="email" id="cad-email" placeholder="seu@email.com">
+            </div>
+
+            <div class="campo">
+                <label for="cad-senha">Senha</label>
+                <input type="password" id="cad-senha" placeholder="••••••••"
+                       onkeydown="if(event.key==='Enter') fazerCadastro()">
+            </div>
+
+            <button class="btn" onclick="fazerCadastro()">Criar conta</button>
+            <p class="link-aba">Já tem conta? <a href="#" onclick="irParaAba('login')">Entrar</a></p>
+        </div>
+
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+
+</body>
+</html>

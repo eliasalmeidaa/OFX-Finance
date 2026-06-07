@@ -1,0 +1,350 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f4fb;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    height: 64px;
+    background: #ffffff;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header strong {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a2340;
+    letter-spacing: -0.3px;
+}
+
+header strong span {
+    color: #1d6ae5;
+}
+
+/* 1. Esconde o checkbox real */
+#modal-toggle {
+    display: none;
+}
+
+/* 2. Botões do nav */
+.btn-nav {
+    background: transparent;
+    color: #1a2340;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+}
+
+.btn-nav:hover {
+    background: #f0f4fb;
+    color: #1d6ae5;
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    color: #888;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    margin-left: 4px;
+}
+
+.btn-logout:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+header nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-selecionar-arquivo {
+    background: transparent;
+    color: #1a2340;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+}
+
+.btn-selecionar-arquivo:hover {
+    background: #f0f4fb;
+    color: #1d6ae5;
+}
+
+/* Botão de destaque (+ Adicionar OFX) */
+label.btn-selecionar-arquivo[for="modal-toggle"],
+nav label.btn-selecionar-arquivo {
+    background: #1d6ae5;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+label.btn-selecionar-arquivo[for="modal-toggle"]:hover,
+nav label.btn-selecionar-arquivo:hover {
+    background: #1453b8;
+    color: #fff;
+}
+
+        /* 3. O Fundo do Modal (Overlay Escuro) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px); /* Efeito de vidro borrado */
+            
+            /* O modal começa invisível */
+            opacity: 0;
+            pointer-events: none; /* Não permite clicar quando invisível */
+            transition: opacity 0.3s ease;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        /* 4. O Card Branco do Modal */
+        .modal-card {
+            background: white;
+            width: 400px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        /* --- LÓGICA DE ATIVAÇÃO --- */
+        /* Quando o checkbox está CHECADO, mostre o modal */
+        #modal-toggle:checked ~ .modal-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #modal-toggle:checked ~ .modal-overlay .modal-card {
+            transform: translateY(0);
+        }
+
+
+
+        /* Estilos do Formulário */
+        h3 { margin-top: 0; color: #333; }
+
+        label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: #666; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box; /* Garante que o padding não aumente a largura */
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            color: #888;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area img {
+            width: 30px;
+        }
+
+        .browse-text { color: #0055ff; font-weight: bold; cursor: pointer; }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .btn-enviar {
+            width: 100%;
+            padding: 12px;
+            background-color: #0055ff; /* Azul do exemplo */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Botão de Fechar (X) */
+        .close-label {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #999;
+            font-size: 20px;
+        }
+        .close-label:hover { color: #333; }
+
+
+
+
+/* Container dos alertas */
+.alertas-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+}
+
+/* Estilo base do alerta */
+.alerta {
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideIn 0.3s ease;
+    font-size: 14px;
+}
+
+/* Alerta de sucesso (verde) */
+.alerta.sucesso {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Alerta de erro (vermelho) */
+.alerta.erro {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Botão de fechar */
+.fechar-alerta {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+    margin-left: 10px;
+}
+
+.fechar-alerta:hover {
+    opacity: 1;
+}
+
+/* Animação de entrada */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ── Empty state ── */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    color: #888;
+}
+
+.empty-state h2 {
+    margin: 20px 0 8px;
+    font-size: 20px;
+    color: #444;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #888;
+    max-width: 360px;
+}
+
+/* ── Tabela de importações ── */
+.tabela-importacoes {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    overflow: hidden;
+}
+
+.tabela-importacoes table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabela-importacoes thead {
+    background: #f4f7fd;
+}
+
+.tabela-importacoes th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7a99;
+}
+
+.tabela-importacoes td {
+    padding: 14px 20px;
+    border-top: 1px solid #f0f0f0;
+    color: #333;
+}
+
+.tabela-importacoes tr:hover td {
+    background: #fafbff;
+}

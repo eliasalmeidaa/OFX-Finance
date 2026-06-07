@@ -1,0 +1,232 @@
+/* ── Reset ── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ── Variáveis ── */
+:root {
+    --accent:       #1d6ae5;
+    --accent-dark:  #1453b8;
+    --accent-glow:  rgba(29, 106, 229, 0.25);
+    --card-bg:      #ffffff;
+    --card-border:  #dce8fb;
+    --text:         #1a2340;
+    --text-muted:   #6b7a99;
+    --input-bg:     #f4f7fd;
+    --input-border: #d0dff5;
+    --input-focus:  #e8f0fd;
+    --tab-bg:       #eef3fc;
+    --tab-muted:    #6b7a99;
+    --erro-bg:      #fff1f1;
+    --erro-border:  #fbbfbf;
+    --erro-text:    #c0392b;
+    --ok-bg:        #f0faf4;
+    --ok-border:    #a7e3bc;
+    --ok-text:      #1e7e4a;
+}
+
+/* ── Fundo ── */
+body {
+    min-height: 100vh;
+    background: #f0f4fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    padding: 24px;
+}
+
+/* ── Card ── */
+.card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    box-shadow: 0 8px 32px rgba(29, 106, 229, 0.1);
+    animation: entrar 0.4s ease;
+}
+
+@keyframes entrar {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Marca ── */
+.brand {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.brand h1 {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+.brand h1 span {
+    color: var(--accent);
+}
+
+.brand p {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* ── Abas ── */
+.tabs {
+    display: flex;
+    background: var(--tab-bg);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 32px;
+}
+
+.tab {
+    flex: 1;
+    padding: 11px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--tab-muted);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+}
+
+.tab.ativa {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+/* ── Formulários ── */
+.form {
+    display: none;
+}
+
+.form.ativo {
+    display: block;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(6px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Campos ── */
+.campo {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+input::placeholder {
+    color: #b0bdd6;
+}
+
+input:focus {
+    border-color: var(--accent);
+    background: var(--input-focus);
+}
+
+/* ── Botão ── */
+.btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.btn:hover {
+    opacity: 0.92;
+    box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+/* ── Mensagens ── */
+.msg {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.msg.erro {
+    display: block;
+    background: var(--erro-bg);
+    border: 1px solid var(--erro-border);
+    color: var(--erro-text);
+}
+
+.msg.ok {
+    display: block;
+    background: var(--ok-bg);
+    border: 1px solid var(--ok-border);
+    color: var(--ok-text);
+}
+
+/* ── Link entre abas ── */
+.link-aba {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.link-aba a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.link-aba a:hover {
+    text-decoration: underline;
+}
+
+/* ── Responsivo ── */
+@media (max-width: 480px) {
+    .card { padding: 36px 24px; }
+}

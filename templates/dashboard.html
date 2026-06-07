@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFX Finance — Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alertas-container">
+                {% for category, message in messages %}
+                    <div class="alerta {{ category }}">
+                        <span>{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" class="fechar-alerta">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <header>
+        <strong>OFX <span style="color:#1d6ae5;">Finance</span></strong>
+        <nav>
+            <a href="/importar" class="btn-nav">Importar OFX</a>
+            <a href="/orcamentos" class="btn-nav">Orçamentos</a>
+            <a href="/metas" class="btn-nav">Metas</a>
+            <a href="/logout" class="btn-logout" title="Sair da conta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </a>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <section class="cards-grid">
+            <div class="card">
+                <span class="card-label">Receita Total</span>
+                <span class="card-valor verde">R$ {{ "%.2f"|format(resumo.receita) }}</span>
+            </div>
+            <div class="card">
+                <span class="card-label">Despesa Total</span>
+                <span class="card-valor vermelho">R$ {{ "%.2f"|format(resumo.despesa) }}</span>
+            </div>
+            <div class="card">
+                <span class="card-label">Saldo Atual</span>
+                <span class="card-valor {{ 'verde' if resumo.saldo >= 0 else 'vermelho' }}">
+                    R$ {{ "%.2f"|format(resumo.saldo) }}
+                </span>
+            </div>
+            <div class="card">
+                <span class="card-label">Orçamento Utilizado</span>
+                <span class="card-valor
+                    {%- if orcamento == 0 or perc_orcamento > 100 %} vermelho
+                    {%- elif perc_orcamento > 80 %} amarelo
+                    {%- else %} verde{% endif %}">
+                    {{ perc_orcamento }}%
+                </span>
+            </div>
+        </section>
+
+        <section class="graficos-grid">
+            <div class="card grafico-card">
+                <h3>Gastos por Categoria</h3>
+                {{ chart_pizza | safe }}
+            </div>
+            <div class="card grafico-card">
+                <h3>Receitas x Despesas por Mês</h3>
+                {{ chart_barras | safe }}
+            </div>
+        </section>
+
+        <section class="graficos-grid-asym">
+            <div class="card grafico-card">
+                <h3>Evolução do Saldo</h3>
+                {{ chart_linha | safe }}
+            </div>
+            <div class="card grafico-card">
+                <h3>Orçamento Mensal</h3>
+                {{ chart_gauge | safe }}
+                <form action="/dashboard/orcamento" method="post" class="form-orcamento">
+                    <label for="orcamento-input">Definir orçamento (R$):</label>
+                    <div class="input-row">
+                        <input type="number" name="orcamento" id="orcamento-input"
+                               value="{{ orcamento }}" step="0.01" min="0">
+                        <button type="submit">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>
