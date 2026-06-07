@@ -2,6 +2,7 @@
 # Responsável por criar e configurar o app Flask,
 # registrar todos os blueprints e inicializar o banco de dados.
 
+import traceback
 from flask import Flask, send_from_directory
 from config import Config
 from services.database import criar_tabelas, inicializar_categorias
@@ -43,6 +44,12 @@ def create_app():
     @app.route('/')
     def index():
         return send_from_directory('static', 'index.html')
+
+    # Loga o traceback completo de qualquer erro 500 nos logs do Render
+    @app.errorhandler(500)
+    def erro_interno(e):
+        print(f'[500 TRACEBACK]\n{traceback.format_exc()}')
+        return 'Internal Server Error', 500
 
     return app
 
