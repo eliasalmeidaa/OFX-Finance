@@ -9,29 +9,27 @@ import io
 import traceback
 from datetime import datetime
 from config import Config
-from services.leitor_ofx import ler_arquivo_ofx, ler_arquivo_ofx_stream, extrair_transacoes, obter_info_conta
-from services.categorizador import categorizar_transacao, determinar_tipo_transacao, CATEGORIAS
-from services.salvar_transacoes import salvar_importacao_db, salvar_categoria_db, salvar_transacao_db
+from services.leitor_ofx import ler_arquivo_ofx_stream, extrair_transacoes, obter_info_conta
+from services.categorizador import categorizar_transacao, determinar_tipo_transacao
 from services.database import conectar_banco
+from models.importacao import Importacao
+from models.categoria import Categoria
+from models.transacao import Transacao
 
 importacao_bp = Blueprint('importacao', __name__)
 
 
 def allowed_file(filename):
-    # Verifica se a extensão do arquivo está na lista de extensões permitidas (.ofx)
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 
 @importacao_bp.route('/importar')
 def index():
-    # Rota protegida — redireciona para login se o usuário não estiver autenticado
     if 'id_usuario' not in session:
         return redirect('/')
 
     id_usuario = session['id_usuario']
 
-    # Busca os últimos 10 extratos importados pelo usuário para exibir na tabela
-    # LEFT JOIN com transacoes para contar quantas transações cada importação gerou
     try:
         conexao = conectar_banco()
         cursor = conexao.cursor(dictionary=True)
@@ -48,7 +46,7 @@ def index():
         importacoes = cursor.fetchall()
         cursor.close()
         conexao.close()
-    except Exception as e:
+    except Exception:
         print(f'[ERRO /importar] {traceback.format_exc()}')
         importacoes = []
 
@@ -57,21 +55,17 @@ def index():
 
 @importacao_bp.route('/upload', methods=['POST'])
 def upload():
-    # Verifica se o formulário enviou algum arquivo
     if 'file' not in request.files:
         flash('Nenhum arquivo foi enviado.', 'erro')
         return redirect('/importar')
 
     file = request.files['file']
 
-    # Nome vazio significa que o usuário não selecionou nenhum arquivo
     if file.filename == '':
         return redirect('/importar')
 
-    # secure_filename remove caracteres perigosos do nome do arquivo
     filename = secure_filename(file.filename)
 
-    # Rejeita arquivos que não sejam .ofx
     if not allowed_file(filename):
         flash(f'O arquivo "{filename}" não é um OFX válido.', 'erro')
         return redirect('/importar')
@@ -79,52 +73,50 @@ def upload():
     id_usuario = session.get('id_usuario', 1)
 
     try:
-        # Lê o conteúdo do arquivo em memória e cria um BytesIO para o parser
-        # Mais compatível que passar o stream direto (garante seek + leitura correta)
-        conteudo = io.BytesIO(file.read())
-        ofx = ler_arquivo_ofx_stream(conteudo)
-        info_conta = obter_info_conta(ofx)
-
-        # Extrai as transações do extrato como lista de dicionários
+        # Lê o arquivo em memória e parseia o OFX
+        ofx = ler_arquivo_ofx_stream(io.BytesIO(file.read()))
         transacoes = extrair_transacoes(ofx)
 
         data_importacao = datetime.now().strftime('%Y-%m-%d')
         mes_referencia = datetime.now().strftime('%Y-%m')
 
-        # Registra a importação no banco e obtém o ID gerado
-        id_importacao = salvar_importacao_db(
-            nome_arquivo=filename,
-            data_importacao=data_importacao,
-            mes_referencia=mes_referencia,
-            id_usuario=id_usuario
-        )
+        # Usa UMA única conexão para todo o processo — evita timeout por excesso de conexões no Aiven
+        conexao = conectar_banco()
+        cursor = conexao.cursor(dictionary=True)
 
-        # Processa e salva cada transação individualmente
-        for transacao in transacoes:
-            descricao = transacao['descricao']
-            valor = transacao['valor']
+        try:
+            # Registra a importação
+            id_importacao = Importacao.criar(cursor, id_usuario, filename, data_importacao, mes_referencia)
 
-            # Define se é Entrada (valor positivo) ou Saída (valor negativo)
-            tipo = determinar_tipo_transacao(valor)
+            # Salva cada transação reutilizando a mesma conexão
+            for transacao in transacoes:
+                descricao = transacao['descricao']
+                valor = transacao['valor']
+                tipo = determinar_tipo_transacao(valor)
+                categoria_nome = categorizar_transacao(descricao)
 
-            # Tenta identificar a categoria com base nas palavras da descrição
-            categoria_nome = categorizar_transacao(descricao)
+                # Busca ou cria categoria
+                id_categoria = Categoria.buscar_por_nome(cursor, categoria_nome)
+                if id_categoria is None:
+                    id_categoria = Categoria.criar(cursor, categoria_nome)
 
-            # Busca ou cria a categoria no banco e obtém o ID
-            id_categoria = salvar_categoria_db(categoria_nome)
+                # Salva transação (ignora duplicatas por fitid)
+                try:
+                    Transacao.criar(cursor, id_importacao, id_categoria, descricao,
+                                    valor, transacao['data_transacao'], tipo, transacao['fitid'])
+                except Exception:
+                    pass  # fitid duplicado — ignora
 
-            # Salva a transação vinculada à importação e à categoria
-            salvar_transacao_db(
-                id_importacao=id_importacao,
-                id_categoria=id_categoria,
-                descricao=descricao,
-                valor=valor,
-                data_transacao=transacao['data_transacao'],
-                tipo=tipo,
-                fitid=transacao['fitid']
-            )
+            conexao.commit()
+            flash(f'Arquivo "{filename}" importado com sucesso! ({len(transacoes)} transações)', 'sucesso')
 
-        flash(f'Arquivo "{filename}" processado com sucesso!', 'sucesso')
+        except Exception:
+            conexao.rollback()
+            raise
+
+        finally:
+            cursor.close()
+            conexao.close()
 
     except Exception as e:
         print(f'[ERRO upload] {traceback.format_exc()}')
