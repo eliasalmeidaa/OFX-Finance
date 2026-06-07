@@ -47,7 +47,6 @@ app_unificado/
 ### 1. Pré-requisitos
 
 - Python 3.10+
-- MySQL rodando localmente com um banco chamado `fintrack`
 
 ### 2. Instalar dependências
 
@@ -79,7 +78,7 @@ python app.py
 
 Acesse em: [http://localhost:5000](http://localhost:5000)
 
-As tabelas são criadas automaticamente na primeira execução.
+As tabelas são criadas automaticamente na primeira execução. Não é necessário instalar MySQL — o banco está hospedado online.
 
 ## Teste rápido
 
