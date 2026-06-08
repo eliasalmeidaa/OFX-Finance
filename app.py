@@ -35,8 +35,8 @@ def create_app():
 
     # Registra os blueprints — cada blueprint é um módulo com suas rotas
     app.register_blueprint(auth_bp)        # Elias: /cadastro /login /logout
-    app.register_blueprint(importacao_bp)  # Gabriel: /importar /upload
-    app.register_blueprint(dashboard_bp)   # Evelyn: /dashboard
+    app.register_blueprint(importacao_bp)  # Evelyn: /importar /upload
+    app.register_blueprint(dashboard_bp)   # Gabriel: /dashboard
     app.register_blueprint(orcamento_bp)   # Guilherme: /orcamentos
     app.register_blueprint(metas_bp)       # Guilherme: /metas
 
