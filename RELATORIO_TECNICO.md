@@ -8,9 +8,9 @@
 O projeto OFX Finance foi desenvolvido como trabalho final de grupo na disciplina de Linguagem de Programação. Cada integrante desenvolveu um módulo separado da aplicação em seu próprio ambiente, resultando em quatro aplicações Flask independentes:
 
 - **Elias** — autenticação de usuários (login e cadastro) + banco de dados MySQL
-- **Gabriel** — importação de arquivos OFX e frontend
+- **Gabriel** — frontend, dashboard com gráficos e visualização de dados
 - **Guilherme** — orçamentos e metas financeiras
-- **Evelyn** — dashboard com gráficos e visualização de dados
+- **Evelyn** — importação de arquivos OFX
 
 O objetivo desta etapa foi unificar todos os módulos em uma única aplicação funcional, sem reescrever o que já estava funcionando, apenas adaptando e conectando as partes.
 
